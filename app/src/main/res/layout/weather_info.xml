@@ -103,16 +103,17 @@
                         android:textSize="15.0sp" />
                     <!-- 当前温度 -->
                     <TextView
-                        android:id="@+id/temperature"
+                        android:id="@+id/wendu"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentLeft="true"
                         android:layout_below="@id/humidity"
                         android:layout_marginLeft="15.0dip"
+                        android:layout_marginTop="30.0dip"
                         android:singleLine="true"
-                        android:text="当前温度度:5℃"
+                        android:text="  5℃"
                         android:textColor="@android:color/white"
-                        android:textSize="15.0sp" />
+                        android:textSize="50.0sp" />
                     <!-- PM2.5整体信息块 -->
                     <LinearLayout
                         android:id="@+id/pm2_5_content"
@@ -210,9 +211,9 @@
                             android:layout_marginLeft="5dip"
                             android:layout_toRightOf="@id/weather_img"
                             android:singleLine="true"
-                            android:text="-2℃~7℃"
+                            android:text="-2℃~8℃"
                             android:textColor="@android:color/white"
-                            android:textSize="30.0sp" />
+                            android:textSize="20.0sp" />
                         <!-- 天气状况 -->
                         <TextView
                             android:id="@+id/climate"
