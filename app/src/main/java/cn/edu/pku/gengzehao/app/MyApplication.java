@@ -29,6 +29,7 @@ public class MyApplication extends Application{
         initCityList();
     }
 
+    //初始化城市列表
     private void initCityList(){
         mCityList = new ArrayList<>();
         new Thread(new Runnable() {
@@ -39,6 +40,8 @@ public class MyApplication extends Application{
             }
         }).start();
     }
+
+    // 准备城市列表
     private boolean prepareCityList() {
         mCityList = mCityDB.getAllCity();
         int i=0;
@@ -52,14 +55,17 @@ public class MyApplication extends Application{
         return true;
     }
 
+    // 获得城市列表
     public List<City> getCityList() {
         return mCityList;
     }
 
+    // 获得MyApplication实例
     public static MyApplication getInstance(){
         return mApplication;
     }
 
+    // 打开数据库,返回CityDB类
     private CityDB openCityDB() {
         String path = "/data"
                 + Environment.getDataDirectory().getAbsolutePath()

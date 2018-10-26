@@ -177,12 +177,12 @@
                     </LinearLayout>
                     <!-- 今日天气信息块 -->
                     <RelativeLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:layout_alignParentLeft="true"
                         android:layout_below="@id/humidity"
                         android:layout_centerInParent="true"
-                        android:layout_marginTop="75.0dip" >
+                        android:layout_marginTop="85.0dip" >
                         <!-- 天气情况图片示例 -->
                         <ImageView
                             android:id="@+id/weather_img"
