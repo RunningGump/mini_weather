@@ -8,6 +8,7 @@ import android.util.Log;
 import android.util.Xml;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Handler;
@@ -40,28 +41,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private ImageView mUpdataBtn;
     private ImageView mCitySelect;
+    private ProgressBar mProgressbar;
 
     // 定义类型为TextView的私有变量
     private TextView cityTv, wenduTv, timeTv, humidityTv, weekTv, pmDataTv,
             pmQualityTv, temperatureTv, climateTv, windTv, city_name_Tv;
 
     private ImageView weatherImg, pmImg;
-
-    /*
-     定义并创建一个Handler实例，用于实现异步消息处理机制：即子线程用于从网络获取天气信息并通过Sendmessage()方法，
-     将获取到天气信息传递到UI线程中，在UI线程中更改天气信息。
-      */
-    private Handler mHandler = new Handler() {
-        public void handleMessage(android.os.Message msg) {
-            switch (msg.what) {
-                case UPDATE_TODAY_WEATHER:
-                    updateTodayWeather((TodayWeather) msg.obj);
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
 
 
 
@@ -73,6 +59,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // 给更新按钮注册了一个点击事件
         mUpdataBtn = (ImageView) findViewById(R.id.title_update_btn);
         mUpdataBtn.setOnClickListener(this);
+
+
+        // 给更新按钮进度条显示不可见
+        mProgressbar = (ProgressBar) findViewById(R.id.title_update_progress);
+//        mProgressbar.setVisibility(View.GONE);
 
         //  检查网络信息
         if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
@@ -90,6 +81,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // 初始化天气信息
         initView();
     }
+
+    /*
+ 定义并创建一个Handler实例，用于实现异步消息处理机制：即子线程用于从网络获取天气信息并通过Sendmessage()方法，
+ 将获取到天气信息传递到UI线程中，在UI线程中更改天气信息。
+  */
+    private Handler mHandler = new Handler() {
+        public void handleMessage(android.os.Message msg) {
+            switch (msg.what) {
+                case UPDATE_TODAY_WEATHER:
+                    updateTodayWeather((TodayWeather) msg.obj);
+                    mProgressbar.setVisibility(View.GONE);
+                    mUpdataBtn.setVisibility(View.VISIBLE);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
     // 初始化主界面的天气信息函数
     void initView(){
@@ -139,6 +148,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         如果网络OK，则根据城市码来获取该城市天气信息。
          */
         if (view.getId() == R.id.title_update_btn) {
+            mUpdataBtn.setVisibility(View.GONE); // 点击更新按钮时更新按钮设置不可见，更新进度条显示出来
+            mProgressbar.setVisibility(View.VISIBLE);
             SharedPreferences sharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
             String cityCode = sharedPreferences.getString("many_city_code", "101010100");
             Log.d("myWeather", cityCode);
@@ -260,8 +271,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     /*
      传入城市代码，通过开启新的线程来从网络获取天气信息，
-     然后，通过parseXML函数获取今日天气实例todayWeather，
-     然后将实例todayWeather赋值给msg.obj，通过Handler将消息发送给主线程UI
+     然后，通过parseXML函数获取今日天气对象todayWeather，
+     然后将todayWeather对象赋值给msg.obj，通过Handler将消息发送给主线程UI
       */
     private void queryWeatherCode(String cityCode)  {
         final String address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + cityCode;
@@ -296,6 +307,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                         Message msg =new Message();
                         msg.what = UPDATE_TODAY_WEATHER;
                         msg.obj=todayWeather;
+//                        Thread.currentThread().sleep(2000); // 测试更新进度条
                         mHandler.sendMessage(msg);
                     }
                 }catch (Exception e){
