@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.Xml;
 import android.view.View;
@@ -23,21 +27,35 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.ToDoubleBiFunction;
 
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+
+import cn.edu.pku.gengzehao.bean.OtherWeather;
 import cn.edu.pku.gengzehao.bean.TodayWeather;
+import cn.edu.pku.gengzehao.fragment.FirstWeatherFragment;
+import cn.edu.pku.gengzehao.fragment.SecondWeatherFragment;
 import cn.edu.pku.gengzehao.util.NetUtil;
 import cn.edu.pku.gengzehao.app.MyApplication;
+import cn.edu.pku.gengzehao.adapter.WeatherPagerAdapter;
 
 
 // 新建一个继承Activity的类
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends FragmentActivity implements View.OnClickListener {
 
     // 定义了一个整型变量UPDATE_TODAY_WEATHER,用于表示更新TodayWeather的动作
     private static final int UPDATE_TODAY_WEATHER = 1;
+    private static final int UPDATE_OTHER_WEATHER = 2;
+
+
 
     private ImageView mUpdataBtn;
     private ImageView mCitySelect;
@@ -48,6 +66,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             pmQualityTv, temperatureTv, climateTv, windTv, city_name_Tv;
 
     private ImageView weatherImg, pmImg;
+    private ViewPager mViewPager;
+    private List<Fragment> fragments;
+    private WeatherPagerAdapter mWeatherPagerAdapter;
+    private List<OtherWeather> otherWeathers;
+
+    private List<Object> todayAndOther;
+
 
 
 
@@ -80,7 +105,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         // 初始化天气信息
         initView();
+
+        //初始化多日天气
+        fragments = new ArrayList<Fragment>();
+        fragments.add(new FirstWeatherFragment());
+        fragments.add(new SecondWeatherFragment());
+        mViewPager = (ViewPager) findViewById(R.id.weather_viewpager);
+        mWeatherPagerAdapter = new WeatherPagerAdapter(getSupportFragmentManager(), fragments);
+        mViewPager.setAdapter(mWeatherPagerAdapter);
+
     }
+
 
     /*
  定义并创建一个Handler实例，用于实现异步消息处理机制：即子线程用于从网络获取天气信息并通过Sendmessage()方法，
@@ -90,42 +125,60 @@ public class MainActivity extends Activity implements View.OnClickListener {
         public void handleMessage(android.os.Message msg) {
             switch (msg.what) {
                 case UPDATE_TODAY_WEATHER:
+//                    List<Object> w = (ArrayList<Object>) msg.obj;
                     updateTodayWeather((TodayWeather) msg.obj);
                     mProgressbar.setVisibility(View.GONE);
                     mUpdataBtn.setVisibility(View.VISIBLE);
                     break;
+
+
                 default:
                     break;
             }
         }
     };
 
+    private Handler otherWeatherHandler = new Handler(){
+        public void handleMessage(android.os.Message msg) {
+            switch (msg.what) {
+                case UPDATE_OTHER_WEATHER:
+                    ((FirstWeatherFragment) mWeatherPagerAdapter.getItem(0)).updateWeather((List<OtherWeather>) msg.obj);
+                    ((SecondWeatherFragment) mWeatherPagerAdapter.getItem(1)).updateWeather((List<OtherWeather>) msg.obj);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+    };
+
     // 初始化主界面的天气信息函数
-    void initView(){
-        city_name_Tv = (TextView) findViewById(R.id.title_city_name);
-        cityTv = (TextView) findViewById(R.id.city);
-        wenduTv = (TextView) findViewById(R.id.wendu);
-        timeTv = (TextView) findViewById(R.id.time);
-        humidityTv = (TextView) findViewById(R.id.humidity);
-        weekTv = (TextView) findViewById(R.id.week_today);
-        pmDataTv = (TextView) findViewById(R.id.pm_data);
-        pmQualityTv = (TextView) findViewById(R.id.pm2_5_quality);
-        pmImg = (ImageView) findViewById(R.id.pm2_5_img);
-        temperatureTv = (TextView) findViewById(R.id.temperature);
-        climateTv = (TextView) findViewById(R.id.climate);
-        windTv = (TextView) findViewById(R.id.wind);
-        weatherImg = (ImageView) findViewById(R.id.weather_img);
-        city_name_Tv.setText("N/A");
-        cityTv.setText("N/A");
-        wenduTv.setText("N/A");
-        timeTv.setText("N/A");
-        humidityTv.setText("N/A");
-        pmDataTv.setText("N/A");
-        pmQualityTv.setText("N/A");
-        weekTv.setText("N/A");
-        temperatureTv.setText("N/A");
-        climateTv.setText("N/A");
-        windTv.setText("N/A");
+    private void initView(){
+            city_name_Tv = (TextView) findViewById(R.id.title_city_name);
+            cityTv = (TextView) findViewById(R.id.city);
+            wenduTv = (TextView) findViewById(R.id.wendu);
+            timeTv = (TextView) findViewById(R.id.time);
+            humidityTv = (TextView) findViewById(R.id.humidity);
+            weekTv = (TextView) findViewById(R.id.week_today);
+            pmDataTv = (TextView) findViewById(R.id.pm_data);
+            pmQualityTv = (TextView) findViewById(R.id.pm2_5_quality);
+            pmImg = (ImageView) findViewById(R.id.pm2_5_img);
+            temperatureTv = (TextView) findViewById(R.id.temperature);
+            climateTv = (TextView) findViewById(R.id.climate);
+            windTv = (TextView) findViewById(R.id.wind);
+            weatherImg = (ImageView) findViewById(R.id.weather_img);
+            city_name_Tv.setText("N/A");
+            cityTv.setText("N/A");
+            wenduTv.setText("N/A");
+            timeTv.setText("N/A");
+            humidityTv.setText("N/A");
+            pmDataTv.setText("N/A");
+            pmQualityTv.setText("N/A");
+            weekTv.setText("N/A");
+            temperatureTv.setText("N/A");
+            climateTv.setText("N/A");
+            windTv.setText("N/A");
     }
 
 
@@ -183,10 +236,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     }
 
-    // 对爬取的天气信息进行解析，最终返回今日天气的对象
+    // 对爬取的天气信息进行解析，最终返回含有今日天气信息和未来4天天气信息的TodayWeather对象
     private  TodayWeather parseXML(String xmldata) {
+        Log.d("xmldata", xmldata);
         TodayWeather todayWeather = null;
-        int fengxiangCount = 0;
         int fengliCount = 0;
         int dateCount = 0;
         int highCount = 0;
@@ -197,7 +250,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             XmlPullParser xmlPullParser = fac.newPullParser();
             xmlPullParser.setInput(new StringReader(xmldata));
             int eventType = xmlPullParser.getEventType();
-            Log.d("myWeather", "parseAML");
+            Log.d("myWeather", "parseXML");
             while (eventType != XmlPullParser.END_DOCUMENT){
                 switch(eventType){
                     // 判断当前事件是否为文档开始事件
@@ -227,10 +280,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             } else if (xmlPullParser.getName().equals("quality")){
                                 eventType = xmlPullParser.next();
                                 todayWeather.setQuality(xmlPullParser.getText());
-                            } else if (xmlPullParser.getName().equals("fengxiang") && fengxiangCount == 0){
-                                eventType = xmlPullParser.next();
-                                todayWeather.setFengxiang(xmlPullParser.getText());
-                                fengxiangCount++;
                             } else if (xmlPullParser.getName().equals("fengli") && fengliCount == 0){
                                 eventType = xmlPullParser.next();
                                 todayWeather.setFengli(xmlPullParser.getText());
@@ -269,15 +318,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
         return todayWeather;
     }
 
+
+
     /*
      传入城市代码，通过开启新的线程来从网络获取天气信息，
-     然后，通过parseXML函数获取今日天气对象todayWeather，
+     然后，通过parseXML函数获取天气信息对象todayWeather，
      然后将todayWeather对象赋值给msg.obj，通过Handler将消息发送给主线程UI
       */
     private void queryWeatherCode(String cityCode)  {
         final String address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + cityCode;
 
         Log.d("myWeather", address);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -289,6 +341,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     con.setRequestMethod("GET");
                     con.setConnectTimeout(8000);
                     con.setReadTimeout(8000);
+
                     InputStream in = con.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                     StringBuilder response = new StringBuilder();
@@ -301,6 +354,31 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     Log.d("myWeather", responseStr);
 //                    parseXML(responseStr);
                     todayWeather = parseXML(responseStr);
+
+                    XMLPullParserHandler parser = new XMLPullParserHandler();
+//                    otherWeathers = parser.parse(in);
+//                    Log.d("otrher",otherWeathers.get(0).toString());
+
+//
+//                    if (todayWeather != null && otherWeathers != null){
+//
+//
+//                        Log.d("myWeather", todayWeather.toString());
+//                        Log.d("myWeather", otherWeathers.toString());
+//
+//                        todayAndOther = new ArrayList<Object>();
+//
+//                        todayAndOther.add(todayWeather);
+//                        todayAndOther.add(otherWeathers);
+//
+//                        Message msg =new Message();
+//                        msg.what = UPDATE_TODAY_WEATHER;
+//                        msg.obj=todayAndOther;
+//                        Thread.currentThread().sleep(2000); // 测试更新进度条
+//                        mHandler.sendMessage(msg);
+
+//                    }
+
                     if (todayWeather != null) {
                         Log.d("myWeather", todayWeather.toString());
 
@@ -310,6 +388,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
 //                        Thread.currentThread().sleep(2000); // 测试更新进度条
                         mHandler.sendMessage(msg);
                     }
+
+//                    XMLPullParserHandler parser = new XMLPullParserHandler();
+//                    otherWeathers = parser.parse(in);
+//                    if (otherWeathers != null) {
+//                        Log.d("myWeather", otherWeathers.toString());
+//
+//                        Message msg =new Message();
+//                        msg.what = UPDATE_OTHER_WEATHER;
+//                        msg.obj=otherWeathers;
+////                        Thread.currentThread().sleep(2000); // 测试更新进度条
+//                        mHandler.sendMessage(msg);
+//                    }
+
                 }catch (Exception e){
                     e.printStackTrace();
                 }finally {
@@ -319,6 +410,76 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             }
         }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection con=null;
+//                TodayWeather todayWeather = null;
+                try{
+                    URL url = new URL(address);
+                    con = (HttpURLConnection)url.openConnection();
+                    con.setRequestMethod("GET");
+                    con.setConnectTimeout(8000);
+                    con.setReadTimeout(8000);
+                    InputStream in = con.getInputStream();
+
+
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    StringBuilder response = new StringBuilder();
+                    String str;
+                    while((str=reader.readLine()) != null){
+                        response.append(str);
+                        Log.d("myWeather", str);
+                    }
+                    String responseStr=response.toString();
+                    Log.d("myWeather", responseStr);
+                    parseXML(responseStr);
+//                    todayWeather = parseXML(responseStr);
+
+//                    XMLPullParserHandler parser = new XMLPullParserHandler();
+//                    otherWeathers = parser.parse(in);
+
+
+
+//                    if (todayWeather != null) {
+//                        Log.d("myWeather", todayWeather.toString());
+//
+//                        Message msg =new Message();
+//                        msg.what = UPDATE_TODAY_WEATHER;
+//                        msg.obj=todayWeather;
+//                        Thread.currentThread().sleep(2000); // 测试更新进度条
+//                        mHandler.sendMessage(msg);
+//                    }
+//
+                    XMLPullParserHandler parser = new XMLPullParserHandler();
+                    otherWeathers = parser.parse(responseStr);
+                    if (otherWeathers != null) {
+                        Log.d("myOtherWeather", otherWeathers.get(0).toString());
+
+                        Message msg =new Message();
+                        msg.what = UPDATE_OTHER_WEATHER;
+                        msg.obj=otherWeathers;
+                        Thread.currentThread().sleep(2000); // 测试更新进度条
+                        otherWeatherHandler.sendMessage(msg);
+                    }
+
+                }catch (Exception e){
+                    e.printStackTrace();
+                }finally {
+                    if(con != null){
+                        con.disconnect();
+                    }
+                }
+            }
+        }).start();
+
+
+
+
+
+
     }
 
     // 传入今日天气对象，然后在主界面更新今日天气。
@@ -336,6 +497,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         windTv.setText("风力:"+todayWeather.getFengli());
         Toast.makeText(MainActivity.this,"更新成功!",Toast.LENGTH_SHORT).show();
     }
+
+
+
 }
 
 

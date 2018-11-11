@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">MiniWeather</string>
+
+    <string name="my_preference">"MyPref" </string>
+    <string name="my_preference_key">"MyPrefKey" </string>
+
+
+    <!--< Slide 1 Title and description>-->
+    <string name="slide_1_title">Title 1 </string>
+    <string name="slide_1_desc">description 1 </string>
+
+    <!--< Slide 1 Title and description>-->
+    <string name="slide_2_title">Title 2 </string>
+    <string name="slide_2_desc">description 2 </string>
+
+    <!--< Slide 1 Title and description>-->
+    <string name="slide_3_title">Title 3 </string>
+    <string name="slide_3_desc">description 3 </string>
+
+    <!--< Slide 1 Title and description>-->
+    <string name="slide_4_title">Title 4 </string>
+    <string name="slide_4_desc">description 4 </string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
 </resources>

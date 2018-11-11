@@ -262,6 +262,15 @@
                     </RelativeLayout>
                 </RelativeLayout>
                 <!-- 六日天气信息 -->
+                <android.support.v4.view.ViewPager
+                    android:id="@+id/weather_viewpager"
+                    android:layout_width="fill_parent"
+                    android:layout_height="165dp"
+                    android:layout_marginTop="5dip"
+                    android:overScrollMode="never"
+                    android:paddingLeft="10dip"
+                    android:paddingRight="10dip"/>
+
                 <!-- 广告等信息 -->
             </LinearLayout>
         </RelativeLayout>

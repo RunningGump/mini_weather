@@ -1,5 +1,9 @@
 package cn.edu.pku.gengzehao.bean;
 
+import android.text.style.TtsSpan;
+
+import cn.edu.pku.gengzehao.miniweather.PreferenceManager;
+
 public class TodayWeather {
     private String city;
     private String updatetime;
@@ -7,12 +11,12 @@ public class TodayWeather {
     private String shidu;
     private String pm25;
     private String quality;
-    private String fengxiang;
     private String fengli;
     private String date;
     private String high;
     private String low;
     private String type;
+
 
     public String getCity() {
         return city;
@@ -38,9 +42,6 @@ public class TodayWeather {
         return quality;
     }
 
-    public String getFengxiang() {
-        return fengxiang;
-    }
 
     public String getFengli() {
         return fengli;
@@ -70,9 +71,6 @@ public class TodayWeather {
         this.fengli = fengli;
     }
 
-    public void setFengxiang(String fengxiang) {
-        this.fengxiang = fengxiang;
-    }
 
     public void setPm25(String pm25) {
         this.pm25 = pm25;
@@ -119,7 +117,6 @@ public class TodayWeather {
                 ", shidu='" + shidu + '\'' +
                 ", pm25='" + pm25 + '\'' +
                 ", quality='" + quality + '\'' +
-                ", fengxiang='" + fengxiang + '\'' +
                 ", fengli='" + fengli + '\'' +
                 ", date='" + date + '\'' +
                 ", high='" + high + '\'' +
