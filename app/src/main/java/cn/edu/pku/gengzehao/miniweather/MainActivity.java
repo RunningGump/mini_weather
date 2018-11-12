@@ -1,15 +1,12 @@
 package cn.edu.pku.gengzehao.miniweather;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.util.Xml;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -27,24 +24,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.ToDoubleBiFunction;
 
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-
-import cn.edu.pku.gengzehao.bean.OtherWeather;
 import cn.edu.pku.gengzehao.bean.TodayWeather;
 import cn.edu.pku.gengzehao.fragment.FirstWeatherFragment;
 import cn.edu.pku.gengzehao.fragment.SecondWeatherFragment;
 import cn.edu.pku.gengzehao.util.NetUtil;
-import cn.edu.pku.gengzehao.app.MyApplication;
 import cn.edu.pku.gengzehao.adapter.WeatherPagerAdapter;
 
 
@@ -69,9 +58,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private ViewPager mViewPager;
     private List<Fragment> fragments;
     private WeatherPagerAdapter mWeatherPagerAdapter;
-    private List<OtherWeather> otherWeathers;
 
-    private List<Object> todayAndOther;
 
 
 
@@ -125,8 +112,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         public void handleMessage(android.os.Message msg) {
             switch (msg.what) {
                 case UPDATE_TODAY_WEATHER:
-//                    List<Object> w = (ArrayList<Object>) msg.obj;
                     updateTodayWeather((TodayWeather) msg.obj);
+                    ((FirstWeatherFragment) mWeatherPagerAdapter.getItem(0)).updateWeather((TodayWeather) msg.obj);
+                    ((SecondWeatherFragment) mWeatherPagerAdapter.getItem(1)).updateWeather((TodayWeather) msg.obj);
                     mProgressbar.setVisibility(View.GONE);
                     mUpdataBtn.setVisibility(View.VISIBLE);
                     break;
@@ -138,20 +126,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     };
 
-    private Handler otherWeatherHandler = new Handler(){
-        public void handleMessage(android.os.Message msg) {
-            switch (msg.what) {
-                case UPDATE_OTHER_WEATHER:
-                    ((FirstWeatherFragment) mWeatherPagerAdapter.getItem(0)).updateWeather((List<OtherWeather>) msg.obj);
-                    ((SecondWeatherFragment) mWeatherPagerAdapter.getItem(1)).updateWeather((List<OtherWeather>) msg.obj);
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
-    };
+//    private Handler otherWeatherHandler = new Handler(){
+//        public void handleMessage(android.os.Message msg) {
+//            switch (msg.what) {
+//                case UPDATE_OTHER_WEATHER:
+//                    ((FirstWeatherFragment) mWeatherPagerAdapter.getItem(0)).updateWeather((List<OtherWeather>) msg.obj);
+//                    ((SecondWeatherFragment) mWeatherPagerAdapter.getItem(1)).updateWeather((List<OtherWeather>) msg.obj);
+//                    break;
+//
+//                default:
+//                    break;
+//            }
+//        }
+//
+//    };
 
     // 初始化主界面的天气信息函数
     private void initView(){
@@ -300,6 +288,118 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                 eventType = xmlPullParser.next();
                                 todayWeather.setType(xmlPullParser.getText());
                                 typeCount++;
+                            } else if (xmlPullParser.getName().equals("date") && dateCount== 1){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setDate1(xmlPullParser.getText());
+                                dateCount++;
+                            } else if (xmlPullParser.getName().equals("date") && dateCount== 2){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setDate2(xmlPullParser.getText());
+                                dateCount++;
+                            } else if (xmlPullParser.getName().equals("date") && dateCount== 3){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setDate3(xmlPullParser.getText());
+                                dateCount++;
+                            } else if (xmlPullParser.getName().equals("date") && dateCount== 4){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setDate4(xmlPullParser.getText());
+                                dateCount++;
+                            } else if (xmlPullParser.getName().equals("high") && highCount== 1){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setHigh1(xmlPullParser.getText());
+                                highCount++;
+                            } else if (xmlPullParser.getName().equals("high") && highCount== 2){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setHigh2(xmlPullParser.getText());
+                                highCount++;
+                            } else if (xmlPullParser.getName().equals("high") && highCount== 3){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setHigh3(xmlPullParser.getText());
+                                highCount++;
+                            } else if (xmlPullParser.getName().equals("high") && highCount== 4){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setHigh4(xmlPullParser.getText());
+                                highCount++;
+                            } else if (xmlPullParser.getName().equals("low") && lowCount== 1){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setLow1(xmlPullParser.getText());
+                                lowCount++;
+                            } else if (xmlPullParser.getName().equals("low") && lowCount== 2){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setLow2(xmlPullParser.getText());
+                                lowCount++;
+                            } else if (xmlPullParser.getName().equals("low") && lowCount== 3){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setLow3(xmlPullParser.getText());
+                                lowCount++;
+                            } else if (xmlPullParser.getName().equals("low") && lowCount== 4){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setLow4(xmlPullParser.getText());
+                                lowCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 1) {
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setType1(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 2){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setType1(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 3) {
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setType1(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 4){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setType2(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 5) {
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setType1(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 6){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setType3(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 7) {
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setType1(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("type") && typeCount== 8){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setType4(xmlPullParser.getText());
+                                typeCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 1){
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setFengli1(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 2){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setFengli1(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 3){
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setFengli1(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 4){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setFengli2(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 5){
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setFengli1(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 6){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setFengli3(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 7){
+                                eventType = xmlPullParser.next();
+//                                todayWeather.setFengli1(xmlPullParser.getText());
+                                fengliCount++;
+                            } else if (xmlPullParser.getName().equals("fengli") && fengliCount== 8){
+                                eventType = xmlPullParser.next();
+                                todayWeather.setFengli4(xmlPullParser.getText());
+                                fengliCount++;
                             }
                         }
                         break;
@@ -355,29 +455,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //                    parseXML(responseStr);
                     todayWeather = parseXML(responseStr);
 
-                    XMLPullParserHandler parser = new XMLPullParserHandler();
-//                    otherWeathers = parser.parse(in);
-//                    Log.d("otrher",otherWeathers.get(0).toString());
-
-//
-//                    if (todayWeather != null && otherWeathers != null){
-//
-//
-//                        Log.d("myWeather", todayWeather.toString());
-//                        Log.d("myWeather", otherWeathers.toString());
-//
-//                        todayAndOther = new ArrayList<Object>();
-//
-//                        todayAndOther.add(todayWeather);
-//                        todayAndOther.add(otherWeathers);
-//
-//                        Message msg =new Message();
-//                        msg.what = UPDATE_TODAY_WEATHER;
-//                        msg.obj=todayAndOther;
-//                        Thread.currentThread().sleep(2000); // 测试更新进度条
-//                        mHandler.sendMessage(msg);
-
-//                    }
 
                     if (todayWeather != null) {
                         Log.d("myWeather", todayWeather.toString());
@@ -410,74 +487,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 }
             }
         }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpURLConnection con=null;
-//                TodayWeather todayWeather = null;
-                try{
-                    URL url = new URL(address);
-                    con = (HttpURLConnection)url.openConnection();
-                    con.setRequestMethod("GET");
-                    con.setConnectTimeout(8000);
-                    con.setReadTimeout(8000);
-                    InputStream in = con.getInputStream();
-
-
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                    StringBuilder response = new StringBuilder();
-                    String str;
-                    while((str=reader.readLine()) != null){
-                        response.append(str);
-                        Log.d("myWeather", str);
-                    }
-                    String responseStr=response.toString();
-                    Log.d("myWeather", responseStr);
-                    parseXML(responseStr);
-//                    todayWeather = parseXML(responseStr);
-
-//                    XMLPullParserHandler parser = new XMLPullParserHandler();
-//                    otherWeathers = parser.parse(in);
-
-
-
-//                    if (todayWeather != null) {
-//                        Log.d("myWeather", todayWeather.toString());
-//
-//                        Message msg =new Message();
-//                        msg.what = UPDATE_TODAY_WEATHER;
-//                        msg.obj=todayWeather;
-//                        Thread.currentThread().sleep(2000); // 测试更新进度条
-//                        mHandler.sendMessage(msg);
-//                    }
-//
-                    XMLPullParserHandler parser = new XMLPullParserHandler();
-                    otherWeathers = parser.parse(responseStr);
-                    if (otherWeathers != null) {
-                        Log.d("myOtherWeather", otherWeathers.get(0).toString());
-
-                        Message msg =new Message();
-                        msg.what = UPDATE_OTHER_WEATHER;
-                        msg.obj=otherWeathers;
-                        Thread.currentThread().sleep(2000); // 测试更新进度条
-                        otherWeatherHandler.sendMessage(msg);
-                    }
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                }finally {
-                    if(con != null){
-                        con.disconnect();
-                    }
-                }
-            }
-        }).start();
-
-
-
-
 
 
     }

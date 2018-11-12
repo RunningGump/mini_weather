@@ -9,9 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
-
-import cn.edu.pku.gengzehao.bean.OtherWeather;
+import cn.edu.pku.gengzehao.bean.TodayWeather;
 import cn.edu.pku.gengzehao.miniweather.R;
 
 /**
@@ -92,13 +90,13 @@ public class FirstWeatherFragment extends Fragment {
     }
 
 
-    public void updateWeather(List<OtherWeather> otherWeathers)
+    public void updateWeather(TodayWeather  todayWeather)
     {
-        if (otherWeathers!= null) {
+        if (todayWeather != null) {
 
 
-            weekTv1.setText(otherWeathers.get(0).getDate());
-            weekTv2.setText(otherWeathers.get(1).getDate());
+            weekTv1.setText(todayWeather.getDate1());
+            weekTv2.setText(todayWeather.getDate2());
 //        weekTv3.setText("N/A");
 
 
@@ -106,17 +104,17 @@ public class FirstWeatherFragment extends Fragment {
             weather_imgTv2.setImageResource(R.drawable.biz_plugin_weather_qing);
 //        weather_imgTv3.setImageResource(R.drawable.biz_plugin_weather_qing);
 
-            climateTv1.setText(otherWeathers.get(0).getType());
-            climateTv2.setText(otherWeathers.get(1).getType());
+            climateTv1.setText(todayWeather.getType1());
+            climateTv2.setText(todayWeather.getDate2());
 //        climateTv3.setText("N/A");
 
-            temperatureTv1.setText(otherWeathers.get(0).getLow().split("\\s+")[1]+"~"+otherWeathers.get(0).getHigh().split("\\s+")[1]);
-            temperatureTv2.setText(otherWeathers.get(1).getLow().split("\\s+")[1]+"~"+otherWeathers.get(1).getHigh().split("\\s+")[1]);
+            temperatureTv1.setText(todayWeather.getLow1().split("\\s+")[1]+"~"+todayWeather.getHigh1().split("\\s+")[1]);
+            temperatureTv2.setText(todayWeather.getLow2().split("\\s+")[1]+"~"+todayWeather.getHigh2().split("\\s+")[1]);
 
 //        temperatureTv3.setText("N/A");
 
-            windTv1.setText(otherWeathers.get(0).getFengli());
-            windTv2.setText(otherWeathers.get(1).getFengli());
+            windTv1.setText(todayWeather.getFengli1());
+            windTv2.setText(todayWeather.getFengli2());
 //        windTv3.setText("N/A");
         } else {
 

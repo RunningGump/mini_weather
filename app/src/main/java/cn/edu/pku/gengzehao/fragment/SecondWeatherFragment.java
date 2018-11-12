@@ -9,9 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
-
-import cn.edu.pku.gengzehao.bean.OtherWeather;
+import cn.edu.pku.gengzehao.bean.TodayWeather;
 import cn.edu.pku.gengzehao.miniweather.R;
 
 /**
@@ -90,57 +88,58 @@ public class SecondWeatherFragment extends Fragment {
 
     }
 
-    public void updateWeather(List<OtherWeather> otherWeathers)
+    public void updateWeather(TodayWeather todayWeather)
     {
-        if (otherWeathers!= null) {
+        if (todayWeather != null) {
 
-            weekTv1.setText(otherWeathers.get(2).getDate());
-            weekTv2.setText(otherWeathers.get(3).getDate());
-    //        weekTv3.setText("N/A");
+
+            weekTv1.setText(todayWeather.getDate3());
+            weekTv2.setText(todayWeather.getDate4());
+//        weekTv3.setText("N/A");
 
 
             weather_imgTv1.setImageResource(R.drawable.biz_plugin_weather_qing);
             weather_imgTv2.setImageResource(R.drawable.biz_plugin_weather_qing);
-    //        weather_imgTv3.setImageResource(R.drawable.biz_plugin_weather_qing);
+//        weather_imgTv3.setImageResource(R.drawable.biz_plugin_weather_qing);
 
-            climateTv1.setText(otherWeathers.get(2).getType());
-            climateTv2.setText(otherWeathers.get(3).getType());
-    //        climateTv3.setText("N/A");
+            climateTv1.setText(todayWeather.getType3());
+            climateTv2.setText(todayWeather.getType3());
+//        climateTv3.setText("N/A");
 
-            temperatureTv1.setText(otherWeathers.get(2).getLow().split("\\s+")[1]+"~"+otherWeathers.get(2).getHigh().split("\\s+")[1]);
-            temperatureTv2.setText(otherWeathers.get(3).getLow().split("\\s+")[1]+"~"+otherWeathers.get(3).getHigh().split("\\s+")[1]);
+            temperatureTv1.setText(todayWeather.getLow3().split("\\s+")[1]+"~"+todayWeather.getHigh3().split("\\s+")[1]);
+            temperatureTv2.setText(todayWeather.getLow4().split("\\s+")[1]+"~"+todayWeather.getHigh4().split("\\s+")[1]);
 
-    //        temperatureTv3.setText("N/A");
+//        temperatureTv3.setText("N/A");
 
-            windTv1.setText(otherWeathers.get(2).getFengli());
-            windTv2.setText(otherWeathers.get(3).getFengli());
-    //        windTv3.setText("N/A");
-    } else {
+            windTv1.setText(todayWeather.getFengli3());
+            windTv2.setText(todayWeather.getFengli4());
+//        windTv3.setText("N/A");
+        } else {
 
             climateTv1.setText("N/A");
             climateTv2.setText("N/A");
-    //        climateTv3.setText("N/A");
+//        climateTv3.setText("N/A");
 
             weekTv1.setText("N/A");
             weekTv2.setText("N/A");
-    //        weekTv3.setText("N/A");
+//        weekTv3.setText("N/A");
 
 
             weather_imgTv1.setImageResource(R.drawable.biz_plugin_weather_qing);
             weather_imgTv2.setImageResource(R.drawable.biz_plugin_weather_qing);
-    //        weather_imgTv3.setImageResource(R.drawable.biz_plugin_weather_qing);
+//        weather_imgTv3.setImageResource(R.drawable.biz_plugin_weather_qing);
 
             climateTv1.setText("N/A");
             climateTv2.setText("N/A");
-    //        climateTv3.setText("N/A");
+//        climateTv3.setText("N/A");
 
             temperatureTv1.setText("N/A");
             temperatureTv2.setText("N/A");
-    //        temperatureTv3.setText("N/A");
+//        temperatureTv3.setText("N/A");
 
             windTv1.setText("N/A");
             windTv2.setText("N/A");
-    //        windTv3.setText("N/A");
+//        windTv3.setText("N/A");
         }
     }
 }
