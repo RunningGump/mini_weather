@@ -2,6 +2,8 @@ package cn.edu.pku.gengzehao.miniweather;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -14,6 +16,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Handler;
 import android.os.Message;
+
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -30,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import cn.edu.pku.gengzehao.app.MyApplication;
 import cn.edu.pku.gengzehao.bean.TodayWeather;
 import cn.edu.pku.gengzehao.fragment.FirstWeatherFragment;
 import cn.edu.pku.gengzehao.fragment.SecondWeatherFragment;
@@ -42,24 +48,29 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     // 定义了一个整型变量UPDATE_TODAY_WEATHER,用于表示更新TodayWeather的动作
     private static final int UPDATE_TODAY_WEATHER = 1;
-    private static final int UPDATE_OTHER_WEATHER = 2;
-
+    private static final int UPDATE_LOCATION = 2;
 
 
     private ImageView mUpdataBtn;
     private ImageView mCitySelect;
     private ProgressBar mProgressbar;
+    private ImageView mTitleLocation;
 
-    // 定义类型为TextView的私有变量
+    // 声明类型为TextView的控件，用来显示各种文本
     private TextView cityTv, wenduTv, timeTv, humidityTv, weekTv, pmDataTv,
             pmQualityTv, temperatureTv, climateTv, windTv, city_name_Tv;
+
 
     private ImageView weatherImg, pmImg;
     private ViewPager mViewPager;
     private List<Fragment> fragments;
     private WeatherPagerAdapter mWeatherPagerAdapter;
+    private LocationManager locationManager;
 
-
+    //  声明一个LocationClient类
+    public LocationClient mLocationClient=null;
+    // 声明并实例化一个MyLocationLister类，监听定位结果，异步获取方式。
+    private MyLocationListener myListener = new MyLocationListener();
 
 
 
@@ -68,14 +79,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         // 通过setContentView方法加载布局
         setContentView(R.layout.weather_info);
+
         // 给更新按钮注册了一个点击事件
         mUpdataBtn = (ImageView) findViewById(R.id.title_update_btn);
         mUpdataBtn.setOnClickListener(this);
 
+        // 实例化一个LocationClient类
+        mLocationClient = new LocationClient(getApplicationContext());
+        // 注册监听函数
+        mLocationClient.registerLocationListener(myListener);
+        // 配置定位SDK参数
+        configLocationParameters();
 
-        // 给更新按钮进度条显示不可见
+
+        // 实例化一个更新按钮进度条
         mProgressbar = (ProgressBar) findViewById(R.id.title_update_progress);
-//        mProgressbar.setVisibility(View.GONE);
+
 
         //  检查网络信息
         if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
@@ -86,7 +105,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             Toast.makeText(MainActivity.this, "网络挂了!", Toast.LENGTH_LONG).show();
         }
 
-        // 给城市选择按钮注册了一个点击事件
+        // 实例化一个选择城市按钮，并注册了一个点击事件
         mCitySelect = (ImageView) findViewById(R.id.title_city_manager);
         mCitySelect.setOnClickListener(this);
 
@@ -101,6 +120,70 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mWeatherPagerAdapter = new WeatherPagerAdapter(getSupportFragmentManager(), fragments);
         mViewPager.setAdapter(mWeatherPagerAdapter);
 
+        // 实例化一个定位按钮，并注册一个点击事件。
+        mTitleLocation = (ImageView) findViewById(R.id.title_location);
+        mTitleLocation.setOnClickListener(this);
+
+    }
+
+    /*
+    配置定位SDK参数
+     */
+    private void configLocationParameters(){
+        LocationClientOption option = new LocationClientOption();
+
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        //可选，设置定位模式，默认高精度
+        //LocationMode.Hight_Accuracy：高精度；
+        //LocationMode. Battery_Saving：低功耗；
+        //LocationMode. Device_Sensors：仅使用设备；
+
+        option.setCoorType("bd09ll");
+        //可选，设置返回经纬度坐标类型，默认GCJ02
+        //GCJ02：国测局坐标；
+        //BD09ll：百度经纬度坐标；
+        //BD09：百度墨卡托坐标；
+        //海外地区定位，无需设置坐标类型，统一返回WGS84类型坐标
+
+        option.setScanSpan(1000);
+        //可选，设置发起定位请求的间隔，int类型，单位ms
+        //如果设置为0，则代表单次定位，即仅定位一次，默认为0
+        //如果设置非0，需设置1000ms以上才有效
+
+        option.setIsNeedAddress(true);
+        //可选，是否需要地址信息，默认为不需要，即参数为false
+        //如果开发者需要获得当前点的地址信息，此处必须为true
+
+        mLocationClient.setLocOption(option);
+        //mLocationClient为第二步初始化过的LocationClient对象
+        //需将配置好的LocationClientOption对象，通过setLocOption方法传递给LocationClient对象使用
+        //更多LocationClientOption的配置，请参照类参考中LocationClientOption类的详细说明
+
+        option.setOpenGps(true);
+        //可选，设置是否使用gps，默认false
+        //使用高精度和仅用设备两种定位模式的，参数必须设置为true
+
+        option.setLocationNotify(true);
+        //可选，设置是否当GPS有效时按照1S/1次频率输出GPS结果，默认false
+
+        option.setIgnoreKillProcess(false);
+        //可选，定位SDK内部是一个service，并放到了独立进程。
+        //设置是否在stop的时候杀死这个进程，默认（建议）不杀死，即setIgnoreKillProcess(true)
+
+        option.SetIgnoreCacheException(false);
+        //可选，设置是否收集Crash信息，默认收集，即参数为false
+
+        option.setWifiCacheTimeOut(5*60*1000);
+        //可选，V7.2版本新增能力
+        //如果设置了该接口，首次启动定位时，会先判断当前Wi-Fi是否超出有效期，若超出有效期，会先重新扫描Wi-Fi，然后定位
+
+        option.setEnableSimulateGps(false);
+        //可选，设置是否需要过滤GPS仿真结果，默认需要，即参数为false
+
+        mLocationClient.setLocOption(option);
+        //mLocationClient为第二步初始化过的LocationClient对象
+        //需将配置好的LocationClientOption对象，通过setLocOption方法传递给LocationClient对象使用
+        //更多LocationClientOption的配置，请参照类参考中LocationClientOption类的详细说明
     }
 
 
@@ -118,28 +201,39 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     mProgressbar.setVisibility(View.GONE);
                     mUpdataBtn.setVisibility(View.VISIBLE);
                     break;
-
-
+//                case UPDATE_LOCATION:
+//                    String cityCode = (String) msg.obj;
+//                    queryWeatherCode(cityCode);
+//                    break;
                 default:
                     break;
             }
         }
     };
 
-//    private Handler otherWeatherHandler = new Handler(){
-//        public void handleMessage(android.os.Message msg) {
-//            switch (msg.what) {
-//                case UPDATE_OTHER_WEATHER:
-//                    ((FirstWeatherFragment) mWeatherPagerAdapter.getItem(0)).updateWeather((List<OtherWeather>) msg.obj);
-//                    ((SecondWeatherFragment) mWeatherPagerAdapter.getItem(1)).updateWeather((List<OtherWeather>) msg.obj);
-//                    break;
-//
-//                default:
-//                    break;
-//            }
-//        }
-//
-//    };
+    private Handler locationHandler = new Handler(){
+        public void handleMessage(android.os.Message msg){
+            switch (msg.what){
+                case UPDATE_LOCATION:
+                    if(msg.obj != null){
+                        if (NetUtil.getNetworkState(MainActivity.this) != NetUtil.NETWORN_NONE) {
+                            Log.d("myWeather", "网络OK");
+                            queryWeatherCode((String) msg.obj);
+                        } else {
+                            Log.d("myWeather", "网络挂了");
+                            Toast.makeText(MainActivity.this, "网络挂了!", Toast.LENGTH_LONG).show();
+                        }
+
+                    }
+                    myListener.cityCode  = null;
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    };
+
 
     // 初始化主界面的天气信息函数
     private void initView(){
@@ -192,7 +286,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             mUpdataBtn.setVisibility(View.GONE); // 点击更新按钮时更新按钮设置不可见，更新进度条显示出来
             mProgressbar.setVisibility(View.VISIBLE);
             SharedPreferences sharedPreferences = getSharedPreferences("config", MODE_PRIVATE);
-            String cityCode = sharedPreferences.getString("many_city_code", "101010100");
+            String cityCode = sharedPreferences.getString("many_city_code", "101060101");
             Log.d("myWeather", cityCode);
 
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
@@ -202,6 +296,33 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this, "网络挂了!", Toast.LENGTH_LONG).show();
             }
+        }
+
+        if(view.getId() == R.id.title_location){
+            //  启动定位SDK
+            mLocationClient.start();
+            Log.d("log", "start location");
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        while (myListener.cityCode == null) {
+                            Thread.currentThread().sleep(1000);
+                            Log.d("log", "location...");
+                        }
+                        Log.d("CITYCODE",myListener.cityCode);
+                        Message msg = new Message();
+                        msg.what = UPDATE_LOCATION;
+                        msg.obj = myListener.cityCode;
+                        locationHandler.sendMessage(msg);
+                        mLocationClient.stop();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
         }
     }
 
@@ -452,7 +573,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                     String responseStr=response.toString();
                     Log.d("myWeather", responseStr);
-//                    parseXML(responseStr);
                     todayWeather = parseXML(responseStr);
 
 
@@ -465,18 +585,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //                        Thread.currentThread().sleep(2000); // 测试更新进度条
                         mHandler.sendMessage(msg);
                     }
-
-//                    XMLPullParserHandler parser = new XMLPullParserHandler();
-//                    otherWeathers = parser.parse(in);
-//                    if (otherWeathers != null) {
-//                        Log.d("myWeather", otherWeathers.toString());
-//
-//                        Message msg =new Message();
-//                        msg.what = UPDATE_OTHER_WEATHER;
-//                        msg.obj=otherWeathers;
-////                        Thread.currentThread().sleep(2000); // 测试更新进度条
-//                        mHandler.sendMessage(msg);
-//                    }
 
                 }catch (Exception e){
                     e.printStackTrace();
@@ -491,7 +599,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     }
 
-    // 传入今日天气对象，然后在主界面更新今日天气。
+    // 传入TodayWeather对象，更新今日天气。
     void updateTodayWeather(TodayWeather todayWeather){
         city_name_Tv.setText(todayWeather.getCity()+"天气");
         cityTv.setText(todayWeather.getCity());
@@ -506,8 +614,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         windTv.setText("风力:"+todayWeather.getFengli());
         Toast.makeText(MainActivity.this,"更新成功!",Toast.LENGTH_SHORT).show();
     }
-
-
 
 }
 
